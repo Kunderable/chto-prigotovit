@@ -2,7 +2,6 @@ import SwiftUI
 import UIKit
 
 extension Color {
-    /// Акцент «паприка»: тёплый, «съедобный», читается с белым текстом.
     static let paprika = Color(uiColor: UIColor { $0.userInterfaceStyle == .dark
         ? UIColor(red: 1, green: 0.54, blue: 0.30, alpha: 1)
         : UIColor(red: 0.85, green: 0.28, blue: 0.06, alpha: 1) })
@@ -19,13 +18,11 @@ extension Color {
 }
 
 extension View {
-    /// Карточка контента: материал с непрерывным скруглением, как в системных приложениях.
     func card(_ radius: CGFloat = 26) -> some View {
         background(.regularMaterial, in: RoundedRectangle(cornerRadius: radius, style: .continuous))
     }
 }
 
-/// Плитка блюда — скруглённый квадрат цвета кухни с эмодзи, как иконка приложения.
 struct DishTile: View {
     let recipe: Recipe
     var size: CGFloat = 44
@@ -50,7 +47,6 @@ struct DishTile: View {
     }
 }
 
-/// Мягкий фон цвета текущего блюда — то, что просвечивает сквозь стекло.
 struct AmbientBackground: View {
     var hue: Double
     @Environment(\.colorScheme) private var scheme
@@ -76,7 +72,6 @@ struct AmbientBackground: View {
     }
 }
 
-/// Три кольца как в «Фитнесе»: белки, жиры, углеводы относительно нормы.
 struct MacroRings: View {
     let eaten: Macros
     let norm: DailyNorm
@@ -109,7 +104,6 @@ struct MacroRings: View {
     private func fraction(_ value: Int, _ total: Int) -> Double { total > 0 ? min(1, Double(value) / Double(total)) : 0 }
 }
 
-/// Калории и БЖУ блюда — четыре цифры в ряд.
 struct StatGrid: View {
     let recipe: Recipe
 

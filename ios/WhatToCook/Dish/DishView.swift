@@ -1,8 +1,6 @@
 import SwiftUI
 import UIKit
 
-/// Экран блюда — один и тот же для блюда из плана и для рецепта из каталога.
-/// Сверху суть (КБЖУ, цена, порции, главное действие), ниже вкладки «Продукты» и «Приготовление».
 struct DishView: View {
     enum Mode: Hashable {
         case planned(MealKind)
@@ -16,10 +14,10 @@ struct DishView: View {
 
     @Environment(AppModel.self) private var model
     @Environment(Router.self) private var router
+    @Environment(StepTimers.self) private var timers
     let mode: Mode
     @State private var section: Section = .ingredients
     @State private var previewPortions: Int?
-    @State private var copied = false
     @State private var cookedNote: String?
 
     private var kind: MealKind? { if case .planned(let meal) = mode { meal } else { nil } }
@@ -196,23 +194,15 @@ struct DishView: View {
                 }
             }
 
-            if let kind, let plan, !plan.cooked {
+            if let kind, let plan, !plan.cooked, !plan.eaten {
                 let rows = model.rows(kind)
-                let toBuy = rows.filter { !$0.have }
                 let cost = model.pricing.buyCost(rows)
-                Button {
-                    UIPasteboard.general.string = Shopping.listText(title: "Купить для «\(recipe.name)», \(plan.portions) порц.", rows: rows)
-                    copied = true
-                } label: {
-                    Label(toBuy.isEmpty ? "Всё есть дома" : (copied ? "Скопировано" : "Скопировать список" + (cost > 0 ? " · ≈ \(Format.rub(cost))" : "")),
-                          systemImage: copied ? "checkmark" : "doc.on.doc")
+                if rows.allSatisfy(\.have) {
+                    Label("Всё есть дома", systemImage: "checkmark").font(.subheadline).foregroundStyle(.secondary)
                         .frame(maxWidth: .infinity)
-                        .contentTransition(.symbolEffect(.replace))
+                } else {
+                    ShoppingToggle(kind: kind, inShopping: plan.inShopping, cost: cost)
                 }
-                .buttonStyle(.glass)
-                .controlSize(.large)
-                .disabled(toBuy.isEmpty)
-                .sensoryFeedback(.success, trigger: copied)
             }
         }
     }
@@ -292,7 +282,8 @@ struct DishView: View {
     // MARK: - Приготовление
 
     private func steps(_ recipe: Recipe) -> some View {
-        VStack(spacing: 12) {
+        let items = Shopping.scaled(recipe, portions: portions)
+        return VStack(spacing: 12) {
             VStack(spacing: 0) {
                 ForEach(Array(recipe.steps.enumerated()), id: \.offset) { index, step in
                     HStack(alignment: .top, spacing: 14) {
@@ -301,7 +292,11 @@ struct DishView: View {
                             .frame(width: 28, height: 28)
                             .background(Color.paprika.opacity(0.14), in: Circle())
                             .foregroundStyle(Color.paprika)
-                        Text(step).frame(maxWidth: .infinity, alignment: .leading)
+                        VStack(alignment: .leading, spacing: 10) {
+                            Text(step)
+                            stepHints(step, number: index + 1, items: items, recipe: recipe)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
                     }
                     .padding(16)
                     if index < recipe.steps.count - 1 { Divider().padding(.leading, 58) }
@@ -326,6 +321,53 @@ struct DishView: View {
                 }
             }
         }
+    }
+
+    @ViewBuilder
+    private func stepHints(_ step: String, number: Int, items: [Ingredient], recipe: Recipe) -> some View {
+        let used = StepHints.ingredients(in: step, from: items)
+        let durations = StepHints.durations(in: step)
+        if !used.isEmpty || !durations.isEmpty {
+            FlowLayout(spacing: 6) {
+                ForEach(Array(durations.enumerated()), id: \.offset) { position, seconds in
+                    timerChip(id: "\(recipe.id)-\(number)-\(position)", seconds: seconds, step: number, recipe: recipe)
+                }
+                ForEach(used, id: \.name) { item in
+                    Text("\(item.name) · \(Format.amount(item.amount, item.unit))")
+                        .font(.footnote)
+                        .padding(.horizontal, 9).padding(.vertical, 4)
+                        .background(Color.secondary.opacity(0.1), in: Capsule())
+                        .foregroundStyle(.secondary)
+                }
+            }
+        }
+    }
+
+    private func timerChip(id: String, seconds: Int, step: Int, recipe: Recipe) -> some View {
+        Button {
+            withAnimation(.snappy) {
+                if timers.endDate(id) != nil {
+                    timers.stop(id: id)
+                } else {
+                    timers.start(id: id, seconds: seconds, title: "Шаг \(step) готов", body: "\(recipe.name): прошло \(Format.duration(seconds))")
+                }
+            }
+        } label: {
+            TimelineView(.periodic(from: .now, by: 1)) { _ in
+                if let end = timers.endDate(id) {
+                    Label { Text(timerInterval: Date.now...end, countsDown: true).monospacedDigit() } icon: { Image(systemName: "stop.fill") }
+                } else {
+                    Label(Format.duration(seconds), systemImage: "timer")
+                }
+            }
+            .font(.footnote.weight(.semibold))
+            .padding(.horizontal, 9).padding(.vertical, 4)
+            .background(Color.paprika.opacity(0.14), in: Capsule())
+            .foregroundStyle(Color.paprika)
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(timers.endDate(id) != nil ? "Остановить таймер" : "Таймер на \(Format.duration(seconds))")
+        .sensoryFeedback(.start, trigger: timers.endDate(id) != nil)
     }
 
     private func rating(_ kind: MealKind, plan: PlannedMeal) -> some View {
@@ -353,5 +395,30 @@ struct DishView: View {
         .padding(18)
         .frame(maxWidth: .infinity)
         .card()
+    }
+}
+
+struct ShoppingToggle: View {
+    @Environment(AppModel.self) private var model
+    let kind: MealKind
+    let inShopping: Bool
+    let cost: Int
+
+    var body: some View {
+        Button {
+            withAnimation(.snappy) { model.toggleShopping(kind) }
+        } label: {
+            Label(title, systemImage: inShopping ? "cart.fill" : "cart.badge.plus")
+                .frame(maxWidth: .infinity)
+                .contentTransition(.symbolEffect(.replace))
+        }
+        .buttonStyle(.glass)
+        .controlSize(.large)
+        .sensoryFeedback(.selection, trigger: inShopping)
+    }
+
+    private var title: String {
+        if inShopping { return "В списке покупок" }
+        return "Добавить в покупки" + (cost > 0 ? " · ≈ \(Format.rub(cost))" : "")
     }
 }

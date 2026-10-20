@@ -1,7 +1,6 @@
 import SwiftUI
 import UIKit
 
-/// Дневник съеденного: блюда из плана и перекусы, добавленные вручную.
 struct DiarySheet: View {
     @Environment(AppModel.self) private var model
     @Environment(\.dismiss) private var dismiss
@@ -67,7 +66,6 @@ struct DiarySheet: View {
         func number(_ text: String) -> Double { Double(text.replacingOccurrences(of: ",", with: ".")) ?? 0 }
         let kcal = number(kcalText), protein = number(proteinText), fat = number(fatText), carbs = number(carbsText)
         guard [kcal, protein, fat, carbs].allSatisfy({ $0 >= 0 && $0 <= 5000 }) else { error = "КБЖУ — числа от 0 до 5000."; return }
-        // если калории не указаны, считаем их из БЖУ: 4 ккал на грамм белков и углеводов, 9 — на грамм жиров
         let totalKcal = kcal > 0 ? kcal : protein * 4 + fat * 9 + carbs * 4
         guard totalKcal > 0 else { error = "Укажи калории или БЖУ."; return }
         model.addDiary(DiaryEntry(id: "custom-\(UUID().uuidString)", name: String(trimmed.prefix(60)), kcal: Int(totalKcal.rounded()),
@@ -76,7 +74,6 @@ struct DiarySheet: View {
     }
 }
 
-/// Что купить на сегодня: продукты блюд, которые ещё не съедены и не приготовлены; одинаковые сложены.
 struct ShoppingSheet: View {
     @Environment(AppModel.self) private var model
     @Environment(\.dismiss) private var dismiss
@@ -87,32 +84,40 @@ struct ShoppingSheet: View {
         let text = Shopping.listText(title: "Купить на \(Date.now.formatted(.dateTime.day().month(.wide)))", rows: rows)
         NavigationStack {
             List {
-                if rows.isEmpty {
-                    ContentUnavailableView("Всё есть дома", systemImage: "checkmark.circle")
+                let groups = model.shoppingGroups
+                if groups.isEmpty {
+                    ContentUnavailableView("Список пуст", systemImage: "cart",
+                                           description: Text("Здесь появятся продукты для блюд, которые ты решишь приготовить. Открой блюдо и нажми «Добавить в покупки»."))
+                        .listRowBackground(Color.clear)
                 } else {
-                    Section {
-                        ForEach(rows.filter { !$0.isPantry }) { row in
+                    ForEach(groups, id: \.kind) { group in
+                        Section {
+                            let toBuy = group.rows.filter { !$0.have && !$0.isPantry }
+                            if toBuy.isEmpty {
+                                Text("Всё есть дома").foregroundStyle(.secondary)
+                            }
+                            ForEach(toBuy) { row in productRow(row) }
+                        } header: {
                             HStack {
-                                VStack(alignment: .leading, spacing: 2) {
-                                    Text(row.name)
-                                    if row.packs > 0 {
-                                        Text("\(row.packs) уп. по \(Format.amount(row.packSize, row.unit))").font(.footnote).foregroundStyle(.secondary)
-                                    }
-                                }
+                                Text("\(group.kind.title) · \(group.recipe.name)").lineLimit(1)
                                 Spacer()
-                                Text(Format.amount(row.toBuy > 0 ? row.toBuy : row.amount, row.unit)).foregroundStyle(.secondary)
+                                Button("Убрать") { withAnimation { model.toggleShopping(group.kind) } }
+                                    .font(.footnote)
+                                    .textCase(nil)
                             }
                         }
-                    } footer: {
-                        let cost = model.pricing.buyCost(rows)
-                        Text((cost > 0 ? "Примерно \(Format.rub(cost)) с учётом целых упаковок. " : "")
-                             + "Если что-то уже есть дома, отметь это в рецепте — продукт пропадёт из списка.")
                     }
                     let pantry = rows.filter(\.isPantry)
                     if !pantry.isEmpty {
                         Section("Специи и масло, если закончились") {
                             ForEach(pantry) { Text($0.name) }
                         }
+                    }
+                    Section {
+                    } footer: {
+                        let cost = model.pricing.buyCost(rows)
+                        Text((cost > 0 ? "Примерно \(Format.rub(cost)) с учётом целых упаковок. Одинаковые продукты из разных блюд в скопированном списке сложены. " : "")
+                             + "Если что-то уже есть дома, отметь это в рецепте — продукт пропадёт из списка.")
                     }
                 }
             }
@@ -139,5 +144,18 @@ struct ShoppingSheet: View {
             }
         }
         .presentationDetents([.medium, .large])
+    }
+
+    private func productRow(_ row: ShoppingRow) -> some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(row.name)
+                if row.packs > 0 {
+                    Text("\(row.packs) уп. по \(Format.amount(row.packSize, row.unit))").font(.footnote).foregroundStyle(.secondary)
+                }
+            }
+            Spacer()
+            Text(Format.amount(row.toBuy > 0 ? row.toBuy : row.amount, row.unit)).foregroundStyle(.secondary)
+        }
     }
 }

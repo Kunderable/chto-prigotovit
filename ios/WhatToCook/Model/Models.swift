@@ -1,7 +1,5 @@
 import Foundation
 
-// Данные рецептов приходят из data/recipes/*.json через build.mjs.
-
 enum MealKind: String, Codable, CaseIterable, Identifiable {
     case breakfast, lunch, dinner
     var id: String { rawValue }
@@ -14,7 +12,6 @@ enum MealKind: String, Codable, CaseIterable, Identifiable {
         }
     }
 
-    /// Доля дневной нормы калорий.
     var share: Double {
         switch self {
         case .breakfast: 0.25
@@ -29,12 +26,10 @@ struct Ingredient: Codable, Hashable {
     /// nil — «по вкусу».
     let amount: Double?
     let unit: String
-    /// Сколько в одной магазинной упаковке, если продукт продаётся упаковками.
     let packSize: Double?
-    /// Соль, специи, масло — то, что обычно покупают впрок.
     let isPantry: Bool
 
-    // В JSON рецептов поля короткие, чтобы файл с 500+ рецептами весил меньше.
+    // Короткие ключи — формат recipes.json, который пишет export-recipes.mjs.
     private enum CodingKeys: String, CodingKey {
         case name = "n", amount = "a", unit = "u", packSize = "pack", isPantry = "pantry"
     }
@@ -66,7 +61,6 @@ struct Recipe: Codable, Identifiable, Hashable {
     /// На сколько порций записаны количества продуктов.
     let servings: Int
     let meal: [MealKind]
-    /// Калории и БЖУ на одну порцию.
     let kcal: Int
     let protein: Int
     let fat: Int
@@ -145,6 +139,24 @@ struct PlannedMeal: Codable, Equatable {
     var cooked = false
     var rated = false
     var eaten = false
+    var inShopping = false
+
+    init(recipeID: String, portions: Int) {
+        self.recipeID = recipeID
+        self.portions = portions
+    }
+
+    // В старых сохранениях нет новых полей.
+    init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        recipeID = try container.decode(String.self, forKey: .recipeID)
+        portions = try container.decode(Int.self, forKey: .portions)
+        have = try container.decodeIfPresent(Set<String>.self, forKey: .have) ?? []
+        cooked = try container.decodeIfPresent(Bool.self, forKey: .cooked) ?? false
+        rated = try container.decodeIfPresent(Bool.self, forKey: .rated) ?? false
+        eaten = try container.decodeIfPresent(Bool.self, forKey: .eaten) ?? false
+        inShopping = try container.decodeIfPresent(Bool.self, forKey: .inShopping) ?? false
+    }
 }
 
 struct DayPlan: Codable, Equatable {
@@ -167,7 +179,7 @@ struct DiaryEntry: Codable, Identifiable, Equatable {
     var meal: MealKind?
     var recipeID: String?
 
-    // Ключи совпадают с прошлыми версиями, чтобы сохранённый дневник читался.
+    // Ключи как в старых сохранениях.
     private enum CodingKeys: String, CodingKey {
         case id, name, kcal, protein = "p", fat = "f", carbs = "c", meal, recipeID
     }
@@ -186,7 +198,6 @@ struct HistoryItem: Codable, Equatable {
     var date: String
 }
 
-/// Всё, что сохраняется на устройстве.
 struct AppData: Codable, Equatable {
     var prefs = Prefs()
     var body: BodyData?
@@ -197,7 +208,6 @@ struct AppData: Codable, Equatable {
     var disliked: [String] = []
     var liked: [String] = []
     var fridge: [FridgeItem] = []
-    /// Специи, масло и прочее, что по словам пользователя всегда есть дома.
     var staples: [String] = []
 }
 
@@ -206,7 +216,7 @@ extension AppData {
         case prefs, body, onboarded, day, diary, history, disliked, liked, fridge, staples
     }
 
-    /// Поля, которых не было в прошлых версиях, берутся по умолчанию — иначе сохранённые данные потерялись бы.
+    // В старых сохранениях нет новых полей: без decodeIfPresent данные бы не прочитались.
     init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         let defaults = AppData()

@@ -1,6 +1,5 @@
 import SwiftUI
 
-/// Холодильник: остатки после готовки и то, что добавил сам.
 struct FridgeView: View {
     @Environment(AppModel.self) private var model
     @State private var name = ""

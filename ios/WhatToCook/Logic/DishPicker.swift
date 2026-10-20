@@ -1,6 +1,6 @@
 import Foundation
 
-/// Детерминированный генератор: одинаковое зерно (например, дата) даёт одинаковый план дня.
+/// Зерно — дата, чтобы план дня не менялся при перезапуске.
 struct SeededGenerator: RandomNumberGenerator {
     private var state: UInt64
 
@@ -22,7 +22,6 @@ struct SeededGenerator: RandomNumberGenerator {
     }
 }
 
-/// Всё, что влияет на выбор блюда.
 struct PickContext {
     var recipes: [Recipe]
     var prefs: Prefs
@@ -43,14 +42,12 @@ enum DishPicker {
     /// При похудении блюдо может быть на столько больше калорий приёма пищи.
     static let loseKcalTolerance = 1.15
 
-    // Вес при случайном выборе
     static let likedBonus = 2.0
     static let leftoverBonus = 4.0
     static let kcalFitBonus = 4.0
     /// Насколько широко «попадание в калории»: доля от цели приёма пищи.
     static let kcalFitWidth = 0.3
 
-    /// Метки для каталога — без привязки к приёму пищи.
     static func labels(_ recipe: Recipe) -> [String] {
         var labels: [String] = []
         if recipe.kcal <= loseKcalMax { labels.append("до \(loseKcalMax) ккал") }
@@ -84,19 +81,17 @@ enum DishPicker {
         recipe.ingredients.filter { item in !item.isPantry && fridge.contains { Shopping.same($0.name, item.name) } }
     }
 
-    /// Вес при случайном выборе: любимое, доедаем остатки, попадает в калории приёма пищи.
     static func score(_ recipe: Recipe, meal: MealKind, context: PickContext) -> Double {
         var weight = 1.0
         if context.liked.contains(recipe.id) { weight += likedBonus }
         weight += leftoverBonus * Double(leftoverHits(recipe, fridge: context.fridge).count)
         if let target = context.targetKcal[meal].map(Double.init) {
-            // колокол Гаусса: чем ближе калории блюда к цели, тем ближе бонус к максимуму
             weight += kcalFitBonus * exp(-pow((Double(recipe.kcal) - target) / (kcalFitWidth * target), 2))
         }
         return weight
     }
 
-    /// Чем больше relax, тем больше ограничений снимается, если подходящих блюд нет.
+    /// relax 0–3: если под все условия ничего не нашлось, по очереди снимаем ограничения.
     static func candidates(meal: MealKind, relax: Int, exclude: Set<String>, context: PickContext) -> [Recipe] {
         let prefs = context.prefs
         let avoid = Set(prefs.avoid.map(\.rawValue))

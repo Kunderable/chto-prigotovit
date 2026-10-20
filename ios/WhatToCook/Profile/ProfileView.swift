@@ -1,6 +1,5 @@
 import SwiftUI
 
-/// Профиль в духе «Настроек»: норма КБЖУ сверху, предпочтения списком.
 struct ProfileView: View {
     @Environment(AppModel.self) private var model
     @State private var editingBody = false
@@ -39,17 +38,18 @@ struct ProfileView: View {
                         Button("Вернуть скрытые блюда (\(model.data.disliked.count))") { model.data.disliked = [] }
                     }
                     Button("Сбросить все данные", role: .destructive) { confirmReset = true }
+                        .confirmationDialog("Стереть все данные?", isPresented: $confirmReset, titleVisibility: .visible) {
+                            Button("Стереть", role: .destructive) { model.resetAll() }
+                            Button("Отмена", role: .cancel) {}
+                        } message: {
+                            Text("Пропадут план, дневник, холодильник и настройки.")
+                        }
                 } footer: {
                     Text("Всё хранится только на этом устройстве.")
                 }
             }
             .navigationTitle("Профиль")
             .sheet(isPresented: $editingBody) { BodyForm() }
-            .confirmationDialog("Стереть все данные?", isPresented: $confirmReset, titleVisibility: .visible) {
-                Button("Стереть", role: .destructive) { model.resetAll() }
-            } message: {
-                Text("Пропадут план, дневник, холодильник и настройки.")
-            }
         }
     }
 
@@ -205,7 +205,6 @@ struct AvoidEditor: View {
     }
 }
 
-/// Пол, возраст, рост, вес и активность — для нормы КБЖУ.
 struct BodyForm: View {
     @Environment(AppModel.self) private var model
     @Environment(\.dismiss) private var dismiss

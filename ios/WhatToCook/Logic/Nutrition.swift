@@ -43,7 +43,6 @@ enum Nutrition {
         let floor = body.sex == .male ? 1500 : 1200
         let kcal = max(floor, round10(tdee * goalFactor(goal)))
         let protein = Int((body.weight * proteinPerKg(goal)).rounded())
-        // 4 ккал в грамме белков и углеводов, 9 — в грамме жиров; что осталось от калорий — добираем жирами или углеводами
         func fatFilling(carbs: Int) -> Int { Int((Double(kcal - protein * 4 - carbs * 4) / 9).rounded()) }
         var carbs: Int
         var fat: Int
@@ -73,7 +72,6 @@ enum Nutrition {
         }
     }
 
-    /// Разбирает текст из полей ввода; запятая в дробях допустима.
     static func parseBody(sex: Sex, age: String, height: String, weight: String, activity: Double) throws(BodyInputError) -> BodyData {
         func number(_ text: String, _ field: String, _ min: Int, _ max: Int) throws(BodyInputError) -> Double {
             let trimmed = text.trimmingCharacters(in: .whitespaces).replacingOccurrences(of: ",", with: ".")

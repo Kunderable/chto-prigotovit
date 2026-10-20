@@ -2,7 +2,6 @@ import Foundation
 import Testing
 @testable import WhatToCook
 
-/// Логика без интерфейса на настоящих рецептах и ценах из приложения.
 struct LogicTests {
     let model: AppModel
     static let body = BodyData(sex: .female, age: 30, height: 165, weight: 65, activity: 1.375)
@@ -110,6 +109,7 @@ struct LogicTests {
         model.put(carbonara.id, into: .dinner)
         let row = try #require(model.rows(.dinner).first { $0.name == salt.name })
         #expect(row.isPantry && !row.have)
+        model.toggleShopping(.dinner)
         #expect(model.dayShoppingRows.contains { $0.name == salt.name })
 
         model.toggleHave(row, in: .dinner)
@@ -121,16 +121,20 @@ struct LogicTests {
         #expect(model.data.staples == [salt.name])
     }
 
-    @Test("Покупки: блюда, которые уже съедены или приготовлены, в список не попадают")
-    func shoppingSkipsDone() throws {
+    @Test("Покупки: пусто, пока блюдо не добавлено; съеденное и приготовленное уходит из списка")
+    func shoppingOnlyChosen() throws {
         model.ensureDay()
+        #expect(model.dayShoppingRows.isEmpty)
+        #expect(model.shoppingGroups.isEmpty)
+
+        model.toggleShopping(.lunch)
         let lunch = try #require(model.recipe(model.data.day?[.lunch]?.recipeID))
-        let onlyLunch = Set(lunch.ingredients.map(\.name)).subtracting(MealKind.allCases.filter { $0 != .lunch }
-            .flatMap { model.recipe(model.data.day?[$0]?.recipeID)?.ingredients.map(\.name) ?? [] })
-        let name = try #require(onlyLunch.first)
+        let name = try #require(lunch.ingredients.first { !$0.isPantry }?.name)
         #expect(model.dayShoppingRows.contains { $0.name == name })
+        #expect(model.shoppingGroups.map(\.kind) == [.lunch])
+
         model.toggleEaten(.lunch)
-        #expect(!model.dayShoppingRows.contains { $0.name == name })
+        #expect(model.dayShoppingRows.isEmpty)
     }
 
     @Test("Старые сохранённые данные без новых полей открываются")
@@ -138,6 +142,34 @@ struct LogicTests {
         let old = #"{"prefs":{"cuisines":[],"avoid":[],"maxTime":40,"goal":"normal","portions":2},"onboarded":true,"diary":{},"history":[],"disliked":[],"liked":[],"fridge":[]}"#
         let data = try JSONDecoder().decode(AppData.self, from: Data(old.utf8))
         #expect(data.onboarded && data.staples.isEmpty)
+
+        let oldMeal = #"{"recipeID":"rua001","portions":2,"have":[],"cooked":false,"rated":false,"eaten":false}"#
+        let meal = try JSONDecoder().decode(PlannedMeal.self, from: Data(oldMeal.utf8))
+        #expect(meal.recipeID == "rua001" && !meal.inShopping)
+    }
+
+    @Test("Шаг рецепта: какие продукты в нём упомянуты, с граммовкой под порции")
+    func stepIngredients() throws {
+        let borscht = try #require(model.recipes.first { $0.name == "Борщ со сметаной" })
+        let items = Shopping.scaled(borscht, portions: 2)
+        let first = StepHints.ingredients(in: borscht.steps[0], from: items).map(\.name)
+        #expect(first == ["Говядина"])
+        #expect(StepHints.ingredients(in: borscht.steps[0], from: items).first?.amount == 250)
+
+        let second = Set(StepHints.ingredients(in: borscht.steps[1], from: items).map(\.name))
+        #expect(second.isSuperset(of: ["Свёкла", "Морковь", "Лук", "Картофель", "Капуста белокочанная"]))
+        #expect(!second.contains("Соль"))
+    }
+
+    @Test("Шаг рецепта: время из текста становится таймером")
+    func stepDurations() {
+        #expect(StepHints.durations(in: "Свари яйца вкрутую, 9 минут, и остуди.") == [540])
+        #expect(StepHints.durations(in: "Обжарь мясо до корочки, 7–8 минут.") == [480])
+        #expect(StepHints.durations(in: "Обжарь лук 3 минуты, добавь помидоры и туши 7 минут.") == [180, 420])
+        #expect(StepHints.durations(in: "Убавь огонь и вари 1 час под крышкой.") == [3600])
+        #expect(StepHints.durations(in: "Запекай 1 час 20 минут.") == [4800])
+        #expect(StepHints.durations(in: "Томи 1,5 часа.") == [5400])
+        #expect(StepHints.durations(in: "Нарежь всё кубиками по 2 см.").isEmpty)
     }
 
     @Test("Смена цели: съеденное остаётся, остальное подбирается заново")

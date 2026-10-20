@@ -1,15 +1,13 @@
 import Foundation
 
-/// Примерная стоимость блюд и покупок. Соль, масло и сухие специи не учитываются.
 struct Pricing {
     static let spoonML: [String: Double] = ["ст.л.": 15, "ч.л.": 5]
-    /// Если цены известны меньше чем для 70% продуктов, стоимость не показываем.
+    /// Если цены известны меньше чем для 70% продуктов, стоимость не показываем: она была бы сильно занижена.
     static let minCoverage = 0.7
     static let steps = [100, 200, 300]
 
     let prices: [String: Price]
 
-    /// ₽ за одну единицу `unit` или nil, если цену не пересчитать.
     func unitPrice(_ name: String, unit: String) -> Double? {
         guard let price = prices[name] else { return nil }
         if unit == price.unit { return price.rub }
@@ -18,7 +16,6 @@ struct Pricing {
         return nil
     }
 
-    /// Стоимость продуктов на одну порцию, округлённая до 10 ₽.
     func portionCost(_ recipe: Recipe) -> Int? {
         let paid = recipe.ingredients.filter { !$0.isPantry && $0.amount != nil }
         guard !paid.isEmpty else { return nil }
@@ -33,7 +30,7 @@ struct Pricing {
         return max(10, Nutrition.round10(total / Double(max(recipe.servings, 1))))
     }
 
-    /// Сколько придётся потратить в магазине: упаковки покупаются целиком.
+    /// Упаковки покупаются целиком.
     func buyCost(_ rows: [ShoppingRow]) -> Int {
         let total = rows.filter { !$0.have && !$0.isPantry }.reduce(0.0) { sum, row in
             guard let price = unitPrice(row.name, unit: row.unit) else { return sum }
@@ -45,7 +42,7 @@ struct Pricing {
 }
 
 enum Format {
-    /// «вторник, 20 октября» → «Вторник, 20 октября»: заглавная только первая буква.
+    /// `capitalized` сделал бы «20 Октября».
     nonisolated static func sentence(_ text: String) -> String { text.prefix(1).uppercased() + text.dropFirst() }
 
     static func rub(_ value: Int) -> String {
@@ -65,6 +62,13 @@ enum Format {
         let whole = Int(halves)
         let text = halves.truncatingRemainder(dividingBy: 1) != 0 ? (whole > 0 ? "\(whole)½" : "½") : "\(whole)"
         return unit.isEmpty ? text : "\(text) \(unit)"
+    }
+
+    nonisolated static func duration(_ seconds: Int) -> String {
+        if seconds < 60 { return "\(seconds) сек" }
+        let hours = seconds / 3600, minutes = seconds % 3600 / 60
+        if hours == 0 { return "\(minutes) мин" }
+        return minutes == 0 ? "\(hours) ч" : "\(hours) ч \(minutes) мин"
     }
 
     static func plural(_ count: Int, _ one: String, _ few: String, _ many: String) -> String {

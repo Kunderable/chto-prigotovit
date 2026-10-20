@@ -12,11 +12,9 @@ struct ShoppingRow: Identifiable, Equatable {
     var packs: Int
     var leftover: Double
     var inFridge: Bool
-    /// Специи и масло: их покупают редко, и «есть дома» запоминается для всех блюд сразу.
     var isPantry = false
 }
 
-/// Граммовка под порции, список покупок с учётом холодильника, остатки после готовки.
 enum Shopping {
     static let leftoverMin: [String: Double] = ["г": 10, "мл": 10, "шт": 1, "зубч.": 1]
 
@@ -48,7 +46,6 @@ enum Shopping {
         } + pantry
     }
 
-    /// Одинаковые продукты из разных блюд складываются.
     static func merge(_ lists: [[ShoppingRow]]) -> [ShoppingRow] {
         var merged: [String: ShoppingRow] = [:]
         var order: [String] = []

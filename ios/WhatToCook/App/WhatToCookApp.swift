@@ -4,12 +4,14 @@ import SwiftUI
 struct WhatToCookApp: App {
     @State private var model = AppModel.live()
     @State private var router = Router()
+    @State private var timers = StepTimers()
 
     var body: some Scene {
         WindowGroup {
             RootView()
                 .environment(model)
                 .environment(router)
+                .environment(timers)
                 .tint(.paprika)
         }
     }
@@ -17,7 +19,6 @@ struct WhatToCookApp: App {
 
 enum AppTab: Hashable { case today, catalog, fridge, profile }
 
-/// Переходы между вкладками, например «поставить рецепт из каталога в план и открыть его».
 @Observable
 final class Router {
     var tab: AppTab = .today

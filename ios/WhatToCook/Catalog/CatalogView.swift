@@ -10,7 +10,6 @@ struct CatalogFilters: Equatable {
     var activeCount: Int { [goal != nil, maxPrice != nil, maxTime < 999, cuisine != nil].filter { $0 }.count }
 }
 
-/// Каталог: поиск, приём пищи на виду, остальные фильтры — в шторке.
 struct CatalogView: View {
     @Environment(AppModel.self) private var model
     @State private var query = ""

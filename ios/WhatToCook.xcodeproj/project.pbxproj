@@ -16,9 +16,11 @@
 		47C8E27FEB397784D8FFC257 /* FridgeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31708A865B089E187051EA62 /* FridgeView.swift */; };
 		525F20B753085F665EA88CA4 /* AppModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52708640D5CE8FF68EEC05D3 /* AppModel.swift */; };
 		554C2DBA7B068C7ECCC70AE0 /* TodayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C50FB77A07F866F565E0127 /* TodayView.swift */; };
+		5BE991EBC8AA3D418335ECFE /* StepHints.swift in Sources */ = {isa = PBXBuildFile; fileRef = 235C8BB010A2D406B1E0431B /* StepHints.swift */; };
 		71C9BE0E835325CA25A55BC5 /* Shopping.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0ADB10DDF816B0DF00CF11D8 /* Shopping.swift */; };
 		74ED85BDD7653A26ABE5B179 /* DishView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 460924698FD2524B29B1C0C4 /* DishView.swift */; };
 		84DC23FF18022B5C7FD13D4A /* LogicTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7201909018906812310ACB /* LogicTests.swift */; };
+		856A961277C5B458EFDA79AB /* StepTimers.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD9D32D14830CBA6819DC645 /* StepTimers.swift */; };
 		8A35AD58B2A32DCF5F90FE19 /* prices.json in Resources */ = {isa = PBXBuildFile; fileRef = 049E4450AFBC6F9BCF2C1924 /* prices.json */; };
 		AD57733871B147CF8E75F2B9 /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7C7B84FACB60E93AF2DE370 /* ProfileView.swift */; };
 		C2B109A9966D23F865705AB4 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CCEBE1BEEA6E69BB7F1409E /* OnboardingView.swift */; };
@@ -43,6 +45,7 @@
 		0ADB10DDF816B0DF00CF11D8 /* Shopping.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Shopping.swift; sourceTree = "<group>"; };
 		0C50FB77A07F866F565E0127 /* TodayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayView.swift; sourceTree = "<group>"; };
 		0CCEBE1BEEA6E69BB7F1409E /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
+		235C8BB010A2D406B1E0431B /* StepHints.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StepHints.swift; sourceTree = "<group>"; };
 		2402508ADD53645203EE047A /* WhatToCook.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = WhatToCook.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		31708A865B089E187051EA62 /* FridgeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FridgeView.swift; sourceTree = "<group>"; };
 		417CF2F0885BD0EA72AE0AF8 /* recipes.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = recipes.json; sourceTree = "<group>"; };
@@ -61,7 +64,8 @@
 		C16596C5F2E1098B20BAE5DC /* Nutrition.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Nutrition.swift; sourceTree = "<group>"; };
 		CE5213ED2F04E29537E00C7B /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		E8B827D81E667BE10C04CF4E /* WhatToCookTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = WhatToCookTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		"TEMP_A74417DB-B2E7-4309-9007-C2DF9897BAD7" /* Signing.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Signing.xcconfig; sourceTree = "<group>"; };
+		FD9D32D14830CBA6819DC645 /* StepTimers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StepTimers.swift; sourceTree = "<group>"; };
+		"TEMP_66C42CAB-302D-41C1-BE59-BFDC1BCC7127" /* Signing.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Signing.xcconfig; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -127,6 +131,7 @@
 		6467329DEC5E25A7E11BE333 /* UI */ = {
 			isa = PBXGroup;
 			children = (
+				FD9D32D14830CBA6819DC645 /* StepTimers.swift */,
 				AB02AF48DB82BE44D547FFFF /* Theme.swift */,
 			);
 			path = UI;
@@ -149,6 +154,7 @@
 				C16596C5F2E1098B20BAE5DC /* Nutrition.swift */,
 				4C8CF60162F341AF191BD961 /* Pricing.swift */,
 				0ADB10DDF816B0DF00CF11D8 /* Shopping.swift */,
+				235C8BB010A2D406B1E0431B /* StepHints.swift */,
 			);
 			path = Logic;
 			sourceTree = "<group>";
@@ -205,10 +211,10 @@
 			path = App;
 			sourceTree = "<group>";
 		};
-		"TEMP_8DB8297B-BA76-4F46-8AD1-81540A5B2991" /* ios */ = {
+		"TEMP_59F2A32B-0439-48AF-83B2-082287E8298C" /* ios */ = {
 			isa = PBXGroup;
 			children = (
-				"TEMP_A74417DB-B2E7-4309-9007-C2DF9897BAD7" /* Signing.xcconfig */,
+				"TEMP_66C42CAB-302D-41C1-BE59-BFDC1BCC7127" /* Signing.xcconfig */,
 			);
 			path = ios;
 			sourceTree = "<group>";
@@ -323,6 +329,8 @@
 				3F9CA510FBB1EF32A952E4BC /* Pricing.swift in Sources */,
 				AD57733871B147CF8E75F2B9 /* ProfileView.swift in Sources */,
 				71C9BE0E835325CA25A55BC5 /* Shopping.swift in Sources */,
+				5BE991EBC8AA3D418335ECFE /* StepHints.swift in Sources */,
+				856A961277C5B458EFDA79AB /* StepTimers.swift in Sources */,
 				FB708C05C7DC28D0A8EB92DB /* Theme.swift in Sources */,
 				032712AB6896FC5A9749750D /* TodaySheets.swift in Sources */,
 				554C2DBA7B068C7ECCC70AE0 /* TodayView.swift in Sources */,
@@ -410,7 +418,7 @@
 		};
 		3DB46B71AA457D08B98D14F7 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = "TEMP_A74417DB-B2E7-4309-9007-C2DF9897BAD7" /* Signing.xcconfig */;
+			baseConfigurationReference = "TEMP_66C42CAB-302D-41C1-BE59-BFDC1BCC7127" /* Signing.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -446,7 +454,7 @@
 		};
 		4E4677F6A6969E9361F4D10E /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = "TEMP_A74417DB-B2E7-4309-9007-C2DF9897BAD7" /* Signing.xcconfig */;
+			baseConfigurationReference = "TEMP_66C42CAB-302D-41C1-BE59-BFDC1BCC7127" /* Signing.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;

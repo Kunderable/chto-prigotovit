@@ -1,13 +1,9 @@
-// Собирает chto-prigotovit.html (src/app.html + src/styles.css + src/js/*.js + рецепты из data/recipes/*.json)
-// и выгружает рецепты и цены для iOS-приложения в ios/WhatToCook/Resources.
-// Запуск: node build.mjs
+// Проверяет рецепты и цены из data/ и выгружает их в ресурсы iOS-приложения.
+// Запуск: node export-recipes.mjs
 import { readFileSync, writeFileSync, readdirSync, mkdirSync } from "node:fs";
 
-const OUT = "chto-prigotovit.html";
 const IOS_RESOURCES = "ios/WhatToCook/Resources";
 const DATA_DIR = "data/recipes";
-const JS_DIR = "src/js";
-const SLOT = { css: "/*__CSS__*/", js: "/*__JS__*/", recipes: "/*__RECIPES__*/[]", prices: "/*__PRICES__*/{}" };
 const SPOON_UNITS = ["ст.л.", "ч.л."];
 
 /** Цены: { название: [₽ за 1 единицу, единица, вес 1 шт в г] }. */
@@ -16,7 +12,7 @@ function loadPrices() {
   return Object.fromEntries(Object.entries(items).map(([n, [rub, qty, unit, gpp]]) => [n, [+(rub / qty).toFixed(4), unit, gpp || 0]]));
 }
 
-/** Можно ли посчитать стоимость ингредиента в его единицах (та же логика, что в src/js/04-prices.js). */
+/** Можно ли посчитать стоимость ингредиента в его единицах (та же логика, что в ios/WhatToCook/Logic/Pricing.swift). */
 function priceable(prices, n, u) {
   const p = prices[n];
   if (!p) return false;
@@ -88,11 +84,6 @@ function loadRecipes(errors) {
   return recipes;
 }
 
-function fill(template, slot, value) {
-  if (!template.includes(slot)) { console.error(`Нет метки ${slot}`); process.exit(1); }
-  return template.replace(slot, () => value);
-}
-
 const errors = [];
 const recipes = loadRecipes(errors);
 const prices = loadPrices();
@@ -106,14 +97,6 @@ if (errors.length) {
   process.exit(1);
 }
 
-const js = readdirSync(JS_DIR).filter((f) => f.endsWith(".js")).sort()
-  .map((f) => `/* ===== ${f} ===== */\n${readFileSync(`${JS_DIR}/${f}`, "utf8")}`).join("\n");
-let page = readFileSync("src/app.html", "utf8");
-page = fill(page, SLOT.css, readFileSync("src/styles.css", "utf8"));
-page = fill(page, SLOT.js, fill(fill(js, SLOT.recipes, JSON.stringify(recipes)), SLOT.prices, JSON.stringify(prices)));
-writeFileSync(OUT, page);
-
-// те же данные для iOS-приложения
 mkdirSync(IOS_RESOURCES, { recursive: true });
 writeFileSync(`${IOS_RESOURCES}/recipes.json`, JSON.stringify(recipes));
 writeFileSync(`${IOS_RESOURCES}/prices.json`, JSON.stringify(Object.fromEntries(
@@ -129,4 +112,4 @@ for (const r of recipes) {
   if (GOALS.protein(r)) row.белок++;
 }
 console.table(table);
-console.log(`Итого ${recipes.length} рецептов, завтраков ${recipes.filter((r) => r.meal.includes("breakfast")).length} → ${OUT} (${Math.round(readFileSync(OUT).length / 1024)} КБ)`);
+console.log(`Итого ${recipes.length} рецептов, завтраков ${recipes.filter((r) => r.meal.includes("breakfast")).length} → ${IOS_RESOURCES}`);

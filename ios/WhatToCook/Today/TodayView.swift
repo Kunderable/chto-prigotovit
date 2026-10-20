@@ -1,6 +1,5 @@
 import SwiftUI
 
-/// «Сегодня»: крупно то, что есть сейчас; остальное — одной строкой.
 struct TodayView: View {
     @Environment(AppModel.self) private var model
     @Environment(Router.self) private var router
@@ -71,7 +70,7 @@ struct TodayView: View {
         let diary = model.diaryToday.count
         return HStack(spacing: 12) {
             QuickButton(icon: "cart", title: "Купить",
-                        subtitle: rows.isEmpty ? "всё есть дома" : "\(rows.count) \(Format.plural(rows.count, "продукт", "продукта", "продуктов"))") { sheet = .shopping }
+                        subtitle: rows.isEmpty ? "список пуст" : "\(rows.count) \(Format.plural(rows.count, "продукт", "продукта", "продуктов"))") { sheet = .shopping }
             QuickButton(icon: "list.bullet.clipboard", title: "Дневник",
                         subtitle: diary == 0 ? "пусто" : "\(diary) \(Format.plural(diary, "запись", "записи", "записей"))") { sheet = .diary }
         }
@@ -83,7 +82,6 @@ enum TodaySheet: String, Identifiable {
     var id: String { rawValue }
 }
 
-/// Кольца КБЖУ и «съедено из нормы». Без данных о себе — приглашение посчитать норму.
 struct SummaryCard: View {
     @Environment(AppModel.self) private var model
     var onSetup: () -> Void
@@ -148,7 +146,6 @@ struct SummaryCard: View {
     }
 }
 
-/// Большая карточка блюда, которое пора готовить сейчас.
 struct HeroCard: View {
     @Environment(AppModel.self) private var model
     @Environment(Router.self) private var router
@@ -211,6 +208,18 @@ struct HeroCard: View {
                         .disabled(plan.eaten || plan.cooked)
                         .accessibilityLabel("Другое блюдо")
 
+                        Button {
+                            withAnimation(.snappy) { model.toggleShopping(kind) }
+                        } label: {
+                            Image(systemName: plan.inShopping ? "cart.fill" : "cart.badge.plus")
+                                .contentTransition(.symbolEffect(.replace))
+                        }
+                        .buttonStyle(.glass)
+                        .controlSize(.large)
+                        .disabled(plan.eaten || plan.cooked)
+                        .sensoryFeedback(.selection, trigger: plan.inShopping)
+                        .accessibilityLabel(plan.inShopping ? "Убрать из покупок" : "Добавить в покупки")
+
                         EatButton(kind: kind, eaten: plan.eaten)
                     }
                 }
@@ -239,7 +248,6 @@ struct HeroCard: View {
     }
 }
 
-/// Кнопка «Съел» с отдачей: галочка подпрыгивает, телефон коротко вибрирует.
 struct EatButton: View {
     @Environment(AppModel.self) private var model
     let kind: MealKind
@@ -265,7 +273,6 @@ struct EatButton: View {
     private func toggle() { withAnimation(.snappy) { model.toggleEaten(kind) } }
 }
 
-/// Строка остальных приёмов пищи на сегодня.
 struct MealRow: View {
     @Environment(AppModel.self) private var model
     @Environment(Router.self) private var router

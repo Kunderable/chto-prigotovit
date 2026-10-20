@@ -2,7 +2,6 @@ import Foundation
 import Observation
 import os
 
-/// Состояние приложения и все действия пользователя. Данные хранятся в JSON-файле на устройстве.
 @Observable
 final class AppModel {
     let recipes: [Recipe]
@@ -12,7 +11,7 @@ final class AppModel {
     private static let log = Logger(subsystem: "ru.chtoprigotovit.app", category: "store")
 
     var data: AppData { didSet { if data != oldValue { save() } } }
-    /// Блюда, которые пользователь пролистал кнопкой «Другое» сегодня, — чтобы не предлагать их снова.
+    /// Пролистанные кнопкой «Другое» — чтобы не предлагать их снова в тот же день.
     var skipped: [MealKind: Set<String>] = [:]
 
     init(recipes: [Recipe], prices: [String: Price], data: AppData = AppData(), storeURL: URL? = nil) {
@@ -50,8 +49,6 @@ final class AppModel {
         }
     }
 
-    // MARK: - Справочные данные
-
     func recipe(_ id: String?) -> Recipe? { id.flatMap { index[$0] } }
     var norm: DailyNorm? { data.body.map { Nutrition.norm(body: $0, goal: data.prefs.goal) } }
     func target(_ meal: MealKind) -> Int? { norm.map { Int((Double($0.kcal) * meal.share).rounded()) } }
@@ -64,14 +61,12 @@ final class AppModel {
 
     // MARK: - План на день
 
-    /// До 11:00 — завтрак, до 16:00 — обед, дальше — ужин.
     static func mealByClock(_ date: Date = .now) -> MealKind {
         let hour = Calendar.current.component(.hour, from: date)
         if hour < 11 { return .breakfast }
         return hour < 16 ? .lunch : .dinner
     }
 
-    /// Что показать крупно: текущий приём пищи, а если он съеден — следующий несъеденный.
     func focusMeal(_ date: Date = .now) -> (meal: MealKind, isNext: Bool) {
         let now = Self.mealByClock(date)
         let order = MealKind.allCases
@@ -93,7 +88,6 @@ final class AppModel {
         Set(MealKind.allCases.filter { $0 != kind }.compactMap { day[$0]?.recipeID })
     }
 
-    /// Гарантирует план на сегодня: три приёма пищи без повторов.
     func ensureDay(now: Date = .now) {
         let date = Self.dayKey(now)
         var day = data.day?.date == date ? data.day! : DayPlan(date: date)
@@ -113,7 +107,7 @@ final class AppModel {
     func put(_ recipeID: String, into kind: MealKind) {
         ensureDay()
         guard var day = data.day else { return }
-        // уже съеденное остаётся в дневнике, даже если блюдо в плане заменили
+        // запись в дневнике не трогаем: съеденное остаётся съеденным, даже если блюдо в плане заменили
         day[kind] = PlannedMeal(recipeID: recipeID, portions: data.prefs.portions)
         data.day = day
     }
@@ -143,7 +137,6 @@ final class AppModel {
         data.day = day
     }
 
-    /// План под новые настройки: съеденное и приготовленное остаётся, остальное подберётся заново.
     func replanKeepingDone() {
         guard var day = data.day, day.date == Self.dayKey() else { return }
         day.meals = day.meals.filter { $0.value.eaten || $0.value.cooked }
@@ -169,14 +162,21 @@ final class AppModel {
         return Shopping.rows(dish, plan: planned, fridge: data.fridge, staples: data.staples)
     }
 
-    var dayShoppingRows: [ShoppingRow] {
-        Shopping.merge(MealKind.allCases.compactMap { kind in
-            guard let planned = data.day?[kind], !planned.cooked, !planned.eaten else { return nil }
-            return rows(kind)
-        })
+    var shoppingGroups: [(kind: MealKind, recipe: Recipe, rows: [ShoppingRow])] {
+        MealKind.allCases.compactMap { kind in
+            guard let planned = data.day?[kind], planned.inShopping, !planned.cooked, !planned.eaten,
+                  let dish = recipe(planned.recipeID) else { return nil }
+            return (kind, dish, rows(kind))
+        }
     }
 
-    /// «Есть дома»: у специй отметка общая для всех блюд, у остальных продуктов — только для этого блюда.
+    var dayShoppingRows: [ShoppingRow] { Shopping.merge(shoppingGroups.map(\.rows)) }
+
+    func toggleShopping(_ kind: MealKind) {
+        update(kind) { $0.inShopping.toggle() }
+    }
+
+    /// У специй отметка общая для всех блюд, у остальных продуктов — только для этого блюда.
     func toggleHave(_ row: ShoppingRow, in kind: MealKind) {
         if row.isPantry {
             let has = data.staples.contains { Shopping.same($0, row.name) }
@@ -190,7 +190,6 @@ final class AppModel {
 
     func removeStaple(_ name: String) { data.staples = data.staples.filter { !Shopping.same($0, name) } }
 
-    /// Возвращает, что добавилось в холодильник.
     @discardableResult
     func cook(_ kind: MealKind) -> [String] {
         guard let planned = data.day?[kind], let dish = recipe(planned.recipeID) else { return [] }
@@ -221,7 +220,6 @@ final class AppModel {
         data.diary = data.diary.filter { keep.contains($0.key) }
     }
 
-    /// «Съел»: одна порция блюда попадает в дневник или убирается из него.
     func toggleEaten(_ kind: MealKind) {
         guard let planned = data.day?[kind], let dish = recipe(planned.recipeID) else { return }
         let key = "meal:\(kind.rawValue):\(dish.id)"
@@ -238,7 +236,6 @@ final class AppModel {
 
     func removeDiary(_ entry: DiaryEntry) {
         setDiaryToday(diaryToday.filter { $0.id != entry.id })
-        // если блюдо всё ещё стоит в плане, снимаем у него отметку «съедено»
         if let kind = entry.meal, data.day?[kind]?.recipeID == entry.recipeID {
             update(kind) { $0.eaten = false }
         }

@@ -1,6 +1,5 @@
 import SwiftUI
 
-/// Первый запуск: три коротких шага вместо одной длинной анкеты.
 struct OnboardingView: View {
     @Environment(AppModel.self) private var model
     @State private var step = 0
@@ -167,7 +166,6 @@ struct OnboardingView: View {
     }
 }
 
-/// Раскладка «тегов»: элементы переносятся на следующую строку, когда не помещаются.
 struct FlowLayout: Layout {
     var spacing: CGFloat = 8
 

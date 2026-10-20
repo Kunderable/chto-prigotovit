@@ -172,6 +172,25 @@ struct LogicTests {
         #expect(StepHints.durations(in: "Нарежь всё кубиками по 2 см.").isEmpty)
     }
 
+    @Test("Фото холодильника: адрес сервера из настроек")
+    func recognizerEndpoint() {
+        #expect(FridgeRecognizer.endpoint(host: "203-0-113-7.sslip.io")?.absoluteString == "https://203-0-113-7.sslip.io/v1/fridge/recognize")
+        #expect(FridgeRecognizer.endpoint(host: "localhost:8080")?.absoluteString == "http://localhost:8080/v1/fridge/recognize")
+        #expect(FridgeRecognizer.endpoint(host: "") == nil)
+        #expect(FridgeRecognizer.endpoint(host: "$(RECOGNIZE_HOST)") == nil)
+    }
+
+    @Test("Фото холодильника: ответ сервера превращается в продукты холодильника")
+    func recognizedItems() throws {
+        let json = #"{"items":[{"name":"Молоко","amount":900,"unit":"мл","known":true},{"name":"Кетчуп","amount":null,"unit":"","known":false}]}"#
+        let items = try FridgeRecognizer.decode(Data(json.utf8))
+        #expect(items.map(\.name) == ["Молоко", "Кетчуп"])
+
+        model.addRecognized(items)
+        #expect(model.data.fridge.first { $0.name == "Молоко" }?.amount == 900)
+        #expect(model.data.fridge.first { $0.name == "Кетчуп" }?.amount == nil)
+    }
+
     @Test("Смена цели: съеденное остаётся, остальное подбирается заново")
     func replan() throws {
         model.data.body = Self.body

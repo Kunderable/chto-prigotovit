@@ -6,10 +6,14 @@ struct FridgeView: View {
     @State private var amount = ""
     @State private var unit = "г"
     @FocusState private var nameFocused: Bool
+    private let recognizer = FridgeRecognizer.fromBundle()
 
     var body: some View {
         NavigationStack {
             List {
+                if let recognizer {
+                    Section { FridgePhotoButton(recognizer: recognizer) }
+                }
                 if model.data.fridge.isEmpty {
                     ContentUnavailableView {
                         Label("Пока пусто", systemImage: "refrigerator")

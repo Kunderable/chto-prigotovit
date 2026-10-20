@@ -4,3 +4,4 @@ xcuserdata/
 *.xcuserstate
 node_modules/
 ios/Local.xcconfig
+server/.env

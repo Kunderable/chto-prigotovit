@@ -1,0 +1,7 @@
+# Caddy сам получает и продлевает HTTPS-сертификат для DOMAIN.
+{$DOMAIN} {
+	request_body {
+		max_size 5MB
+	}
+	reverse_proxy app:8080
+}

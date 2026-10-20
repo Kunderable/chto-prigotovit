@@ -3,6 +3,7 @@
 import { readFileSync, writeFileSync, readdirSync, mkdirSync } from "node:fs";
 
 const IOS_RESOURCES = "ios/WhatToCook/Resources";
+const SERVER_PRODUCTS = "server/products.json";
 const DATA_DIR = "data/recipes";
 const SPOON_UNITS = ["ст.л.", "ч.л."];
 
@@ -96,6 +97,10 @@ if (errors.length) {
   console.error(`Ошибки в данных (${errors.length}):\n` + errors.join("\n"));
   process.exit(1);
 }
+
+// сервер распознавания фото называет продукты только из этого списка, чтобы они совпадали с рецептами
+const productNames = [...new Set([...Object.keys(prices), ...recipes.flatMap((r) => r.ingredients.map((i) => i.n))])].sort((a, b) => a.localeCompare(b, "ru"));
+writeFileSync(SERVER_PRODUCTS, JSON.stringify(productNames, null, 1) + "\n");
 
 mkdirSync(IOS_RESOURCES, { recursive: true });
 writeFileSync(`${IOS_RESOURCES}/recipes.json`, JSON.stringify(recipes));

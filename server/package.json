@@ -1,0 +1,10 @@
+{
+  "name": "what-to-cook-server",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "start": "node src/server.mjs",
+    "test": "node --test test/"
+  }
+}

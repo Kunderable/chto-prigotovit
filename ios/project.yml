@@ -26,9 +26,14 @@ targets:
         UILaunchScreen: {}
         UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
         ITSAppUsesNonExemptEncryption: false
+        NSCameraUsageDescription: Чтобы сфотографировать холодильник и узнать, что в нём есть.
+        RecognizeHost: $(RECOGNIZE_HOST)
+        RecognizeToken: $(RECOGNIZE_TOKEN)
+        NSAppTransportSecurity:
+          NSAllowsLocalNetworking: true
     configFiles:
-      Debug: Signing.xcconfig
-      Release: Signing.xcconfig
+      Debug: App.xcconfig
+      Release: App.xcconfig
     settings:
       base:
         # прежний идентификатор: с ним уже установленное приложение обновится, а не встанет второй копией

@@ -22,6 +22,17 @@
 	<string>1</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsLocalNetworking</key>
+		<true/>
+	</dict>
+	<key>NSCameraUsageDescription</key>
+	<string>Чтобы сфотографировать холодильник и узнать, что в нём есть.</string>
+	<key>RecognizeHost</key>
+	<string>$(RECOGNIZE_HOST)</string>
+	<key>RecognizeToken</key>
+	<string>$(RECOGNIZE_TOKEN)</string>
 	<key>UILaunchScreen</key>
 	<dict/>
 	<key>UISupportedInterfaceOrientations</key>

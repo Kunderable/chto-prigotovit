@@ -1,5 +1,0 @@
-// Команда разработчика для подписи у каждого своя, поэтому она лежит в Local.xcconfig, который не попадает в git.
-// Чтобы поставить приложение на свой iPhone, создайте ios/Local.xcconfig со строкой:
-// DEVELOPMENT_TEAM = <ваш Team ID>
-// или просто выберите команду в Xcode: Signing & Capabilities → Team.
-#include? "Local.xcconfig"

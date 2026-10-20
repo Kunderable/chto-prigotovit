@@ -1,0 +1,10 @@
+// Личные настройки лежат в Local.xcconfig рядом с этим файлом, он не попадает в git:
+//
+// DEVELOPMENT_TEAM = <ваш Team ID>          — чтобы ставить приложение на свой iPhone
+// RECOGNIZE_HOST = 203-0-113-7.sslip.io     — сервер распознавания фото (папка server/), без https://
+// RECOGNIZE_TOKEN = <APP_TOKEN из server/.env>
+//
+// Без RECOGNIZE_HOST кнопки «Сфотографировать холодильник» нет.
+RECOGNIZE_HOST =
+RECOGNIZE_TOKEN =
+#include? "Local.xcconfig"

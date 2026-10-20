@@ -248,6 +248,13 @@ final class AppModel {
         data.fridge = data.fridge.filter { !Shopping.same($0.name, name) } + [item]
     }
 
+    /// Одной записью, а не по одному продукту: иначе файл сохранялся бы на каждый.
+    func addRecognized(_ items: [RecognizedItem]) {
+        let names = items.map(\.name)
+        let added = items.map { FridgeItem(name: $0.name, amount: $0.amount, unit: $0.amount == nil ? "" : $0.unit) }
+        data.fridge = data.fridge.filter { item in !names.contains { Shopping.same($0, item.name) } } + added
+    }
+
     func resetAll() {
         skipped = [:]
         data = AppData()

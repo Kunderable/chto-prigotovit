@@ -1,0 +1,5 @@
+.DS_Store
+ios/build/
+xcuserdata/
+*.xcuserstate
+node_modules/

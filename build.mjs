@@ -1,10 +1,10 @@
 // Собирает chto-prigotovit.html (src/app.html + src/styles.css + src/js/*.js + рецепты из data/recipes/*.json)
-// и выгружает рецепты и цены для iOS-приложения в ios/ChtoPrigotovit/Resources.
+// и выгружает рецепты и цены для iOS-приложения в ios/WhatToCook/Resources.
 // Запуск: node build.mjs
 import { readFileSync, writeFileSync, readdirSync, mkdirSync } from "node:fs";
 
 const OUT = "chto-prigotovit.html";
-const IOS_RESOURCES = "ios/ChtoPrigotovit/Resources";
+const IOS_RESOURCES = "ios/WhatToCook/Resources";
 const DATA_DIR = "data/recipes";
 const JS_DIR = "src/js";
 const SLOT = { css: "/*__CSS__*/", js: "/*__JS__*/", recipes: "/*__RECIPES__*/[]", prices: "/*__PRICES__*/{}" };

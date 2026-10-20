@@ -7,10 +7,10 @@
 Нужен Xcode 26 или новее, приложение работает на iOS 26+.
 
 1. Скачайте репозиторий: зелёная кнопка **Code → Download ZIP** или `git clone`.
-2. Откройте `ios/ChtoPrigotovit.xcodeproj`.
+2. Откройте `ios/WhatToCook.xcodeproj`.
 3. Выберите симулятор iPhone и нажмите ▶.
 
-Чтобы поставить приложение на свой iPhone, в настройках таргета на вкладке *Signing & Capabilities* выберите свою команду (подойдёт бесплатный Apple ID) и при необходимости поменяйте Bundle Identifier.
+Чтобы поставить приложение на свой iPhone, выберите свою команду в настройках таргета на вкладке *Signing & Capabilities* (подойдёт бесплатный Apple ID) и при необходимости поменяйте Bundle Identifier. Чтобы выбор не сбрасывался после `xcodegen generate`, создайте файл `ios/Local.xcconfig` со строкой `DEVELOPMENT_TEAM = <ваш Team ID>`. Этот файл не попадает в git.
 
 Проект собирается из `ios/project.yml` с помощью [XcodeGen](https://github.com/yonaskolb/XcodeGen). После добавления новых файлов выполните `cd ios && xcodegen generate`.
 
@@ -24,4 +24,4 @@
 node build.mjs && node --test tests/
 ```
 
-`build.mjs` собирает HTML из `src/` и `data/` и заодно обновляет рецепты и цены для iOS (`ios/ChtoPrigotovit/Resources`).
+`build.mjs` собирает HTML из `src/` и `data/` и заодно обновляет рецепты и цены для iOS (`ios/WhatToCook/Resources`).

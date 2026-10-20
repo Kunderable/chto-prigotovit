@@ -3,3 +3,4 @@ ios/build/
 xcuserdata/
 *.xcuserstate
 node_modules/
+ios/Local.xcconfig

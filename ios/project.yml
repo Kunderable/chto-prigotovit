@@ -1,5 +1,5 @@
 # Проект Xcode собирается из этого файла: cd ios && xcodegen generate
-name: ChtoPrigotovit
+name: WhatToCook
 options:
   bundleIdPrefix: ru.chtoprigotovit
   deploymentTarget:
@@ -13,43 +13,47 @@ settings:
     MARKETING_VERSION: "1.0"
     CURRENT_PROJECT_VERSION: "1"
 targets:
-  ChtoPrigotovit:
+  WhatToCook:
     type: application
     platform: iOS
     sources:
-      - ChtoPrigotovit
+      - WhatToCook
     info:
-      path: ChtoPrigotovit/Info.plist
+      path: WhatToCook/Info.plist
       properties:
         CFBundleDisplayName: Что приготовить
         CFBundleDevelopmentRegion: ru
         UILaunchScreen: {}
         UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
         ITSAppUsesNonExemptEncryption: false
+    configFiles:
+      Debug: Signing.xcconfig
+      Release: Signing.xcconfig
     settings:
       base:
+        # прежний идентификатор: с ним уже установленное приложение обновится, а не встанет второй копией
         PRODUCT_BUNDLE_IDENTIFIER: ru.chtoprigotovit.app
         TARGETED_DEVICE_FAMILY: "1"
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
         CODE_SIGN_STYLE: Automatic
-  ChtoPrigotovitTests:
+  WhatToCookTests:
     type: bundle.unit-test
     platform: iOS
     sources:
-      - ChtoPrigotovitTests
+      - WhatToCookTests
     dependencies:
-      - target: ChtoPrigotovit
+      - target: WhatToCook
     settings:
       base:
         GENERATE_INFOPLIST_FILE: YES
         BUNDLE_LOADER: $(TEST_HOST)
-        TEST_HOST: $(BUILT_PRODUCTS_DIR)/ChtoPrigotovit.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/ChtoPrigotovit
+        TEST_HOST: $(BUILT_PRODUCTS_DIR)/WhatToCook.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/WhatToCook
 schemes:
-  ChtoPrigotovit:
+  WhatToCook:
     build:
       targets:
-        ChtoPrigotovit: all
+        WhatToCook: all
     test:
       targets:
-        - ChtoPrigotovitTests
+        - WhatToCookTests
